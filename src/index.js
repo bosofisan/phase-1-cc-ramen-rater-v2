@@ -1,110 +1,68 @@
 // Constants
-const BASE_URL = 'http://localhost:3000/ramens';
+const url = 'http://localhost:3000/ramens';
 const ramenMenu = document.getElementById('ramen-menu');
 const ramenDetail = document.getElementById('ramen-detail');
-const newRamenForm = document.getElementById('new-ramen');
+const newRamenForm= document.getElementById('new-ramen');
 
-// Callbacks
-const handleClick = (ramen) => {
-    const ramenId = ramen.target.dataset.id;
-    fetch(`${BASE_URL}/${ramenId}`)
-        .then(response => response.json())
-        .then(ramen => {
-            // Clear the content of the ramenDetail div
-            ramenDetail.innerHTML = '';
-
-            // Create and append h2 element for ramen name
-            const h2 = document.createElement('h2');
-            h2.textContent = ramen.name;
-            ramenDetail.appendChild(h2);
-
-            // Create and append paragraph element for ramen rating
-            const ratingParagraph = document.createElement('p');
-            ratingParagraph.textContent = `Rating: ${ramen.rating}`;
-            ramenDetail.appendChild(ratingParagraph);
-
-            // Create and append paragraph element for ramen comment
-            const commentParagraph = document.createElement('p');
-            commentParagraph.textContent = `Comment: ${ramen.comment}`;
-            ramenDetail.appendChild(commentParagraph);
-        })
-        .catch(error => {
-            console.error('There was a problem with your fetch operation:', error);
+//Functions
+function displayRamens() {
+    fetch(url)
+    .then ( res => res.json())
+    .then ( ramens => {
+        ramens.forEach (ramen => { 
+            const img = document.createElement('img');
+            img.src = ramen.image;
+            img.alt = ramen.name;
+            img.addEventListener('click', () => handleClick(ramen));
+            ramenMenu.appendChild(img);
         });
-};
+    })
+    .catch(error => console.error("Error fetching ramens:", error));
+}
 
-const addSubmitListener = () => {
+function handleClick(ramen) {
+    const detailImg = document.querySelector('#ramen-detail .detail-image');
+    const detailName = document.querySelector('#ramen-detail .name');
+    const detailRestaurant = document.querySelector('#ramen-detail .restaurant');
+    const detailRating = document.getElementById('rating-display');
+    const detailComment = document.getElementById('comment-display');
+
+    detailImg.src = ramen.image;
+    detailImg.alt = ramen.name;
+    detailName.textContent = ramen.name;
+    detailRestaurant.textContent = ramen.restaurant;
+    detailRating.textContent = ramen.rating;
+    detailComment.textContent = ramen.comment;
+}
+
+function addSubmitListener() {
     newRamenForm.addEventListener('submit', event => {
         event.preventDefault();
-        const formData = new FormData(newRamenForm);
-        const newRamen = {
-            name: formData.get('name'),
-            image: formData.get('image'),
-            rating: formData.get('rating'),
-            comment: formData.get('comment')
-        };
-        fetch(BASE_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(newRamen)
-        })
-        .then(response => response.json())
-        .then(ramen => {
-            const ramenId = ramen.id;
-            const existingImage = ramenMenu.querySelector(`img[data-id="${ramenId}"]`);
-            if (!existingImage) {
-                const ramenImage = document.createElement('img');
-                ramenImage.src = ramen.image;
-                ramenImage.dataset.id = ramenId;
-                ramenMenu.appendChild(ramenImage);
-            }
-            newRamenForm.reset();
-        })
-        .catch(error => {
-            console.error('There was a problem with your fetch operation:', error);
-        });
+        const name = document.getElementById('new-name').value;
+        const restaurant = document.getElementById('new-restaurant').value
+        const image = document.getElementById('new-image').value;
+        const rating = document.getElementById('new-rating').value;
+        const comment = document.getElementById('new-comment').value;
+
+        const newRamen = { name, restaurant, image, rating, comment };
+        addRamenToMenu(newRamen)
+
+        newRamenForm.reset();
     });
-};
+}
 
-const displayRamens = () => {
-    fetch(BASE_URL)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            data.forEach(ramen => {
-                const ramenId = ramen.id;
-                const existingImage = ramenMenu.querySelector(`img[data-id="${ramenId}"]`);
-                if (!existingImage) {
-                    const ramenImage = document.createElement('img');
-                    ramenImage.src = ramen.image;
-                    ramenImage.dataset.id = ramenId;
-                    ramenImage.addEventListener('click', handleClick);
-                    ramenMenu.appendChild(ramenImage);
-                }
-            });
-        })
-        .catch(error => {
-            console.error('There was a problem with your fetch operation:', error);
-        });
-};
+function addRamenToMenu(ramen) {
+    const img = document.createElement('img');
+    img.src = ramen.image;
+    img.alt = ramen.name;
+    img.addEventListener('click', () => handleClick(ramen));
+    ramenMenu.appendChild(img);
+}
 
-const main = () => {
+//Main Function
+function main() {
     displayRamens();
     addSubmitListener();
-};
+}
 
-main();
-
-// Export functions for testing
-export {
-    displayRamens,
-    addSubmitListener,
-    handleClick,
-    main,
-};
+document.addEventListener('DOMContentLoaded', main);
